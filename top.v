@@ -9,7 +9,8 @@ module top(hwclk, led1, led2, led3, led4);
   /* 1 Hz clock generation (from 12 MHz) */
   reg clk_1 = 0;
   reg [31:0] cntr_1 = 32'b0;
-  parameter period_1 = 6000000;
+  /* parameter period_1 = 6000000; */
+  parameter period_1 = 60;
 
   /* LED drivers */
   reg [3:0] d0 = 4'b0;
