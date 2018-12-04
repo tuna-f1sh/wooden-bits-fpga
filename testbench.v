@@ -27,7 +27,7 @@ module test;
   end
 
   initial begin
-    #(PERIOD*1000) $finish;
+    #(PERIOD*10000) $finish;
   end
 
   /* always @ (posedge clk) begin */

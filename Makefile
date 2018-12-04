@@ -26,7 +26,7 @@ burn:
 test:
 	iverilog -o demo $(TESTBENCH) $(FILES)
 	vvp demo
-	# gtkwave dump.vcd
+	#gtkwave dump.vcd
 
 clean:
 	rm build/*
