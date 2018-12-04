@@ -22,7 +22,7 @@ module test;
 
   initial begin
     $display("Binary Clock");
-    $monitor("time: %d: clk: %0h, led1:%0h, led2:%0h, led3:%0h, led4:%0h",
+    $monitor("time: %4d: clk: %0d, h1:%0d, h0:%0d, m1:%0d, m0:%0d",
       $time, clk, led1, led2, led3, led4);
   end
 

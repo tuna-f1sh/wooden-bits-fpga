@@ -1,3 +1,5 @@
+`include "modulo.v"
+
 module top(hwclk, led1, led2, led3, led4);
   /* I/O */
   input hwclk;
@@ -7,17 +9,20 @@ module top(hwclk, led1, led2, led3, led4);
   output led4;
 
   /* 1 Hz clock generation (from 12 MHz) */
-  reg clk_1 = 0;
+  reg clk_1 = 1'b0;
   reg [31:0] cntr_1 = 32'b0;
   /* parameter period_1 = 6000000; */
-  parameter period_1 = 60;
+  parameter period_1 = 1;
+
+  wire [3:0] dm0;
+  wire rst_m0 = ((dm0 & 9) == 9);
+  modulo m0(clk_1, rst_m0, dm0);
 
   /* LED drivers */
-  reg [3:0] d0 = 4'b0;
-  assign led1 = d0[0];
-  assign led2 = d0[1];
-  assign led3 = d0[2];
-  assign led4 = d0[3];
+  assign led1 = dm0[0];
+  assign led2 = dm0[1];
+  assign led3 = dm0[2];
+  assign led4 = dm0[3];
 
   /* main clock divides down for utility clocks */
   always @ (posedge hwclk) begin
@@ -29,8 +34,12 @@ module top(hwclk, led1, led2, led3, led4);
     end
   end
 
-  always @ (posedge clk_1) begin
-    d0 <= ((d0 & 9) == 9) ? 4'b0 : d0 + 1;
-  end
+  /* always @ (posedge clk_1) begin */
+  /*   if (dm0 == 9) begin */
+  /*     rst_m0 <= 1'b1; */
+  /*   end else begin */
+  /*     rst_m0 <= 1'b0; */
+  /*   end */
+  /* end */
 
 endmodule
