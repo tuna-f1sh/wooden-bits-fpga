@@ -1,0 +1,3 @@
+[submodule "ws2812-core"]
+	path = ws2812-core
+	url = https://github.com/mattvenn/ws2812-core
