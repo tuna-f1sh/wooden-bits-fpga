@@ -6,5 +6,4 @@ set_io --warn-no-port led4 96
 # set_io --warn-no-port led5 95
 set_io --warn-no-port hwclk 21
 
-# TODO - choose pin on dev board output
-set_io --warn-no-port ws_data 95
+set_io --warn-no-port ws_data 78

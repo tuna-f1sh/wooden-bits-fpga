@@ -66,10 +66,23 @@ module top(hwclk, led1, led2, led3, led4, ws_data);
     end
   end
 
-  reg [23:0] led_rgb_data = 24'h00_00_10;
+  reg [23:0] led_rgb_data = 24'h00_00_00;
   reg [7:0] led_num = 0;
   wire led_write = clk_1;
 
-  ws2812 #(.NUM_LEDS(16)) ws2812_inst(.data(ws_data), .clk(hwclk), .reset(reset), .rgb_data(led_rgb_data), .led_num(led_num), .write(led_write));
+  always @ (posedge hwclk) begin
+    if (~reset) begin
+      if ((led_num & 4) == 4) begin
+        led_rgb_data <= ds0[0] ? 24'h10_10_10 : 24'h00_00_00;
+        led_num <= 0;
+      end else
+        led_rgb_data <= ds0[led_num+1] ? 24'h10_10_10 : 24'h00_00_00;
+        led_num <= led_num + 1;
+    end
+  end
+
+
+
+  ws2812 #(.NUM_LEDS(4)) ws2812_inst(.data(ws_data), .clk(hwclk), .reset(reset), .rgb_data(led_rgb_data), .led_num(led_num), .write(led_write));
 
 endmodule
