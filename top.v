@@ -1,5 +1,5 @@
 `include "modulo.v"
-`include "ws2812.v"
+`include "ws2812-core/ws2812.v"
 
 module top(hwclk, led1, led2, led3, led4, ws_data);
   /* I/O */
@@ -17,8 +17,8 @@ module top(hwclk, led1, led2, led3, led4, ws_data);
   /* 1 Hz clock generation (from 12 MHz) */
   reg clk_1 = 1'b0;
   reg [31:0] cntr_1 = 32'b0;
-  /* parameter period_1 = 6000000; */
-  parameter period_1 = 1;
+  parameter period_1 = 6000000;
+  /* parameter period_1 = 1; */
   
   /* seconds */
   wire [3:0] ds0;
@@ -28,7 +28,7 @@ module top(hwclk, led1, led2, led3, led4, ws_data);
   wire [3:0] ds1;
   wire rst_ds1 = (ds1[0] & ds1[2]); // 5(0) minutes
   wire carry_ds1;
-  modulo s1(rst_ds0, rst_ds1, carry_ds1,  ds1);
+  modulo s1(carry_ds0, rst_ds1, carry_ds1,  ds1);
 
   /* minutes */
   wire [3:0] dm0;
@@ -69,15 +69,15 @@ module top(hwclk, led1, led2, led3, led4, ws_data);
 
   reg [23:0] led_rgb_data = 24'h10_10_10;
   reg [7:0] led_num = 0;
-  reg [16:0] led_mask = 16'b0;
+  reg [23:0] led_mask = 16'b0;
   wire led_write = 0;
 
   always @ (posedge clk_1) begin
     if (~reset) begin
-      led_mask <= {dh1, dh0, dm1, dm0};
+      led_mask <= {dh1, dh0, dm1, dm0, ds1, ds0};
     end
   end
 
-  ws2812 #(.NUM_LEDS(16)) ws2812_inst(.data(ws_data), .clk(hwclk), .reset(reset), .rgb_data(led_rgb_data), .led_num(led_num), .led_mask(led_mask), .write(led_write));
+  ws2812 #(.NUM_LEDS(24)) ws2812_inst(.data(ws_data), .clk(hwclk), .reset(reset), .rgb_data(led_rgb_data), .led_num(led_num), .led_mask(led_mask), .write(led_write));
 
 endmodule
