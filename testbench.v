@@ -4,8 +4,8 @@
 
 module test;
   reg  clk;
-  wire led1, led2, led3, led4;
-  top TOP(clk,led1,led2,led3,led4);
+  wire led1, led2, led3, led4, ws_data;
+  top TOP(clk,led1,led2,led3,led4, ws_data);
 
   parameter PERIOD = 2;
 
