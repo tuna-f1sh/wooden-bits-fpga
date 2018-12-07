@@ -4,8 +4,9 @@
 
 module test;
   reg  clk;
-  wire led1, led2, led3, led4, ws_data;
-  top TOP(clk,led1,led2,led3,led4, ws_data);
+  wire [4:0] leds;
+  wire ws_data;
+  top TOP(clk, leds, ws_data);
 
   parameter PERIOD = 2;
 
@@ -23,7 +24,7 @@ module test;
   initial begin
     $display("Binary Clock");
     $monitor("time: %4d: clk: %0d, h1:%0d, h0:%0d, m1:%0d, m0:%0d",
-      $time, clk, led1, led2, led3, led4);
+      $time, clk, leds[0], leds[1], leds[2], leds[3]);
   end
 
   initial begin
@@ -33,10 +34,5 @@ module test;
   /* always @ (posedge clk) begin */
   /*   display; */
   /* end */
-
-  task display;
-    $display("clk: %0h, led1:%0h, led2:%0h, led3:%0h, led4:%0h",
-      clk, led1, led2, led3, led4);
-  endtask
 
 endmodule
