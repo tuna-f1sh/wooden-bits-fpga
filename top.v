@@ -17,8 +17,8 @@ module top(
   /* 1 Hz clock generation (from 12 MHz) */
   reg clk_1 = 1'b0;
   reg [31:0] cntr_1 = 32'b0;
-  /* parameter period_1 = 6000000; */
-  parameter period_1 = 1;
+  parameter period_1 = 6000000;
+  /* parameter period_1 = 1; */
   
   /* seconds */
   wire [3:0] ds0;
@@ -65,18 +65,16 @@ module top(
   end
 
   reg [24 * NUM_LEDS - 1:0] led_rgb_data = 0;
-  wire [5:0] digits;
-  wire [SHOW_DIGITS:0] led_matrix;
+  /* wire [6 * 4 - 1:0] digits; */
+  wire [SHOW_DIGITS * 4 - 1:0] led_matrix;
   integer i;
 
-  assign digits = {dh1, dh0, dm1, dm0, ds1, ds0};
-  assign led_matrix = digits[5 -: 6 - SHOW_DIGITS];
+  /* assign digits = {dh1, dh0, dm1, dm0, ds1, ds0}; */
+  assign led_matrix = {dm1, dm0, ds1, ds0};
 
   always @ (posedge clk_1) begin
-    if (~reset) begin
-      for (i=0; i < NUM_LEDS; i=i+1)
-        led_rgb_data[23 * i +: 23] <= (led_matrix[i]) ? 24'h10_10_10 : 24'h00_00_00;
-    end
+    for (i=0; i < NUM_LEDS; i=i+1)
+      led_rgb_data[23 * i +: 24] <= (led_matrix[i]) ? 24'h10_10_10 : 24'h00_00_00;
   end
 
   ws2812 #(.NUM_LEDS(NUM_LEDS)) ws2812_inst(.data(ws_data), .clk(hwclk), .reset(reset), .packed_rgb_data(led_rgb_data));
