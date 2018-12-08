@@ -4,9 +4,10 @@
 
 module test;
   reg  clk;
+  reg  btn;
   wire [4:0] leds;
   wire ws_data;
-  top TOP(clk, leds, ws_data);
+  top TOP(clk, btn, leds, ws_data);
 
   parameter PERIOD = 2;
 
@@ -19,12 +20,14 @@ module test;
 
     // init vars
     clk = 1'b0;
+    btn = 1'b0;
+    #(PERIOD*100) btn = ~btn;
   end
 
   initial begin
     $display("Binary Clock");
-    $monitor("time: %4d: clk: %0d, h1:%0d, h0:%0d, m1:%0d, m0:%0d",
-      $time, clk, leds[0], leds[1], leds[2], leds[3]);
+    $monitor("time: %4d: clk: %0d, btn: %0d, h1:%0d, h0:%0d, m1:%0d, m0:%0d",
+      $time, clk, btn, leds[0], leds[1], leds[2], leds[3]);
   end
 
   initial begin

@@ -1,7 +1,8 @@
-module modulo(clk, rst, mod, digit);
-  input clk, rst;
-  output [3:0] digit;
-  output mod;
+module modulo(
+  input clk,
+  input rst,
+  output mod,
+  output [3:0] digit);
 
   reg [3:0] nyble = 4'b0;
   reg carry = 1'b0;
