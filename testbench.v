@@ -20,7 +20,7 @@ module test;
 
     // init vars
     clk = 1'b0;
-    btn = 1'b0;
+    btn = 1'b1;
     #(PERIOD*100) btn = ~btn;
   end
 
