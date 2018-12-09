@@ -1,5 +1,5 @@
 # Makefile adapted from https://github.com/cliffordwolf/icestorm/blob/master/examples/icestick/Makefile
-# Adapted for my needs
+# Adapted for my needs J.Whittingotn 2018
 #
 # The following license is from the icestorm project and specifically applies to this file only:
 #
@@ -18,8 +18,8 @@
 PROJ = top
 
 # Remember to change WS2812 main clock expected speed if switching devices!
-# HARDWARE = icestick
-HARDWARE = tinyfpga-bx
+HARDWARE = icestick
+# HARDWARE = tinyfpga-bx
 
 BUILD = ./build
 
@@ -69,7 +69,10 @@ all: $(PROJ).rpt $(PROJ).bin
 	vvp -N $(BUILD)/$< +vcd=$@
 
 prog: $(PROJ).bin
-	$(PROG_CMD) $<
+	$(PROG_CMD) $(BUILD)/$<
+
+burn:
+	$(PROG_CMD) $(BUILD)/$(PROJ).bin
 
 sudo-prog: $(PROJ).bin
 	@echo 'Executing prog as root!!!'

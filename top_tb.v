@@ -20,8 +20,7 @@ module test;
 
     // init vars
     clk = 1'b0;
-    btn = 1'b1;
-    #(PERIOD*100) btn = ~btn;
+    btn = 1'b0; // button pressed to advance time
   end
 
   initial begin

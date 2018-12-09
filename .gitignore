@@ -1,9 +1,5 @@
 # icestorm build files
-*.blif
-*.bin
-*.asc
-dump.vcd
-demo
+build/
 
 # OS junk files
 [Tt]humbs.db
