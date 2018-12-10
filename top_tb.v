@@ -7,12 +7,9 @@ module test;
   reg  btn;
   wire [4:0] leds;
   wire ws_data;
-  top TOP(clk, btn, leds, ws_data);
+  top #(.MAIN_CLK(2)) TOP(.CLK(clk), .BTN(btn), .LED(leds), .WS2812_DATA(ws_data));
 
-  parameter PERIOD = 2;
-
-  always
-    #(PERIOD/2) clk = ~clk;
+  always #1 clk = ~clk;
 
   initial begin
     $dumpfile("dump.vcd");
@@ -20,21 +17,23 @@ module test;
 
     // init vars
     clk = 1'b0;
-    btn = 1'b0; // button pressed to advance time
+    btn = 1'b1;
   end
 
   initial begin
-    $display("Binary Clock");
-    $monitor("time: %4d: clk: %0d, btn: %0d, h1:%0d, h0:%0d, m1:%0d, m0:%0d",
-      $time, clk, btn, leds[0], leds[1], leds[2], leds[3]);
+    $display("Binary Clock Demo Crunching...");
+    /* $monitor("time: %4d: clk: %0d, btn: %0d, h1:%0d, h0:%0d, m1:%0d, m0:%0d", */
+      /* $time, clk, btn, leds[0], leds[1], leds[2], leds[3]); */
   end
 
   initial begin
-    #(PERIOD*10000) $finish;
+    wait(TOP.dh1 == 2 & TOP.dh0 == 3)
+    wait(TOP.dh1 == 0 & TOP.dh0 == 0)
+    btn = 1'b0; // test set button advance clock
+    $display("testing set button...");
+    wait(TOP.dh1 == 2 & TOP.dh0 == 3)
+    wait(TOP.dh1 == 0 & TOP.dh0 == 0)
+    $finish;
   end
-
-  /* always @ (posedge clk) begin */
-  /*   display; */
-  /* end */
 
 endmodule

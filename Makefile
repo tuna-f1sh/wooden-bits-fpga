@@ -16,6 +16,7 @@
 #  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 PROJ = top
+# PROJ = binary_clock
 
 # Remember to change WS2812 main clock expected speed if switching devices!
 HARDWARE = icestick

@@ -8,7 +8,7 @@ module top(
   output WS2812_DATA);
 
   localparam NUM_LEDS = 16;
-  localparam MAIN_CPU = 12000000;
+  parameter MAIN_CLK = 12000000;
 
   /* reset WS2812s on first clock */
   reg reset = 1;
@@ -18,39 +18,32 @@ module top(
   reg [31:0] cntr_1 = 32'b0;
   reg clk_2 = 1'b0;
   reg [15:0] cntr_2 = 16'b0;
-  parameter period_1 = MAIN_CPU / 2;
-  parameter period_2 = MAIN_CPU / 2000;
-  reg binary_clk = 0;
+  parameter period_1 = MAIN_CLK / 2;
+  parameter period_2 = MAIN_CLK / 2000000;
   
   /* seconds (4 and 3 bits but leave all) */
   wire [3:0] ds0;
-  wire rst_ds0 = (ds0[0] & ds0[3]); // 9
-  wire mod_ds0;
-  counter s0(binary_clk, rst_ds0, mod_ds0, ds0);
+  wire rst_ds0 = (ds0[1] & ds0[3] | reset); // 10
+  counter s0(clk_1, rst_ds0, ds0);
   wire [3:0] ds1;
-  wire rst_ds1 = (ds1[0] & ds1[2]); // 5(0) minutes
-  wire mod_ds1;
-  counter s1(mod_ds0, rst_ds1, mod_ds1,  ds1);
+  wire rst_ds1 = (ds1[1] & ds1[2] | reset); // 6(0) minutes
+  counter s1(rst_ds0, rst_ds1, ds1);
 
   /* minutes (4 and 3 bits but leave all) */
   wire [3:0] dm0;
-  wire rst_dm0 = (dm0[0] & dm0[3]); // 9
-  wire mod_dm0;
-  counter m0(mod_ds1, rst_dm0, mod_dm0, dm0);
+  wire rst_dm0 = (dm0[1] & dm0[3] | reset); // 10
+  counter m0(rst_ds1, rst_dm0, dm0);
   wire [3:0] dm1;
-  wire rst_dm1 = (dm1[0] & dm1[2]); // 5(0) minutes
-  wire mod_dm1;
-  counter m1(mod_dm0, rst_dm1, mod_dm1,  dm1);
+  wire rst_dm1 = (dm1[1] & dm1[2] | reset); // 6(0) minutes
+  counter m1(rst_dm0, rst_dm1,  dm1);
 
   /* hours (4 and 2 bits but leave all) */
   wire [3:0] dh0;
-  wire rst_dh0 = ((dh0[0] & dh0[3]) | rst_dh1); // 9 or tens of hour reset
-  wire mod_dh0;
-  counter h0(mod_dm1, rst_dh0, mod_dh0, dh0);
+  wire rst_dh0 = ((dh0[1] & dh0[3]) | rst_dh1 | reset); // 10 or tens of hour reset
+  counter h0(rst_dm1, rst_dh0, dh0);
   wire [3:0] dh1;
-  wire rst_dh1 = (dh1[1] & dh0[0] & dh0[1]); // 2(0) & 3 hours
-  wire mod_dh1;
-  counter h1(mod_dh0, rst_dh1, mod_dh1, dh1);
+  wire rst_dh1 = (dh1[1] & dh0[2] | reset); // 2(0) & 4 hours
+  counter h1(rst_dh0, rst_dh1, dh1);
 
   /* LED drivers */
   assign LED = ds0;
@@ -61,20 +54,24 @@ module top(
     /* generate 1 Hz clock */
     cntr_1 <= cntr_1 + 1;
     cntr_2 <= cntr_2 + 1;
-    if (cntr_1 == period_1) begin
-      clk_1 <= ~clk_1;
-      cntr_1 <= 32'b0;
+
+    if (~BTN) begin
+      if (cntr_1 == period_2) begin
+        clk_1 <= ~clk_1;
+        cntr_1 <= 32'b0;
+      end
+    end else begin
+      if (cntr_1 == period_1) begin
+        clk_1 <= ~clk_1;
+        cntr_1 <= 32'b0;
+      end
     end
+
     if (cntr_2 == period_2) begin
       clk_2 <= ~clk_2;
       cntr_2 <= 16'b0;
     end
 
-    if (~BTN) begin
-      binary_clk <= clk_2;
-    end else begin
-      binary_clk <= clk_1;
-    end
   end
 
   // ws2812 driver bits
@@ -109,7 +106,6 @@ module top(
     end else if (~|{dh1, dh0, dm1, dm0} || (dh1[0] && dh0[1] && ~|{dm1, dm0})) begin
       rainbow <= 1;
       red <= 8'h10; green <= 8'h10; blue <= 8'h00;
-      /* colour_wheel; */
     // or just show clock
     end else begin
       red <= 8'h10; green <= 8'h10; blue <= 8'h10;
@@ -119,13 +115,9 @@ module top(
       wheel <= wheel + 1;
     end
 
-    /* if (rainbow) begin */
-    /*   led_rgb_data[24 * led_num +: 24] <= display_rgb; */
-    /* end else begin */
-      for (i=0; i<NUM_LEDS; i=i+1) begin
-        led_rgb_data[24 * i +: 24] <= (led_matrix[i] | rainbow) ? display_rgb : 24'h00_00_00;
-      end
-    /* end */
+    for (i=0; i<NUM_LEDS; i=i+1) begin
+      led_rgb_data[24 * i +: 24] <= (led_matrix[i] | rainbow) ? display_rgb : 24'h00_00_00;
+    end
   end
 
   task colour_wheel; begin
@@ -144,6 +136,6 @@ module top(
     end
   end endtask
 
-  ws2812 #(.NUM_LEDS(NUM_LEDS), .CLK_MHZ(MAIN_CPU / 1000000)) ws2812_inst(.data(WS2812_DATA), .clk(CLK), .reset(reset), .packed_rgb_data(led_rgb_data));
+  ws2812 #(.NUM_LEDS(NUM_LEDS), .CLK_MHZ(MAIN_CLK / 1000000)) ws2812_inst(.data(WS2812_DATA), .clk(CLK), .reset(reset), .packed_rgb_data(led_rgb_data));
 
 endmodule
