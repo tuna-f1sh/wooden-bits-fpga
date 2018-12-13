@@ -72,9 +72,6 @@ all: $(PROJ).rpt $(PROJ).bin
 prog: $(PROJ).bin
 	$(PROG_CMD) $(BUILD)/$<
 
-burn:
-	$(PROG_CMD) $(BUILD)/$(PROJ).bin
-
 sudo-prog: $(PROJ).bin
 	@echo 'Executing prog as root!!!'
 	sudo $(PROG_CMD) $<

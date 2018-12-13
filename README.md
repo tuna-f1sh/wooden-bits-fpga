@@ -17,6 +17,33 @@ important in Verilog, particulary when driving the next digits with the reset
 signal.
 
 Open 'falstad.txt' in [Falstad](http://www.falstad.com/circuit/circuitjs.html)
-for a simulation of the design.
+for a simulation of the design. To implement this, I designed the counter
+module to be asyncronous (reset on reset edge), so that the reset line
+can directly feed the next digit block. Initially, my approach was syncronous
+(read reset on clk edge) but this meant having to have a 'carry' output on reset
+to clock the other digits at the correct time (otherwise they would clock one
+digit ahead of the desired value).
 
 ## WS2812 LED Matrix
+
+The additional challenge of this design (particulary fitting it all in the
+1200 LTs of the IceStick), was to drive a WS2812 matrix like _Wooden Bits_.
+For this I developed a fork of Matt Venn's [WS2812
+module](https://github.com/tuna-f1sh/ws2812-core). My fork allows direct
+access to the pseudo RGB register of each LED so that the data can be edged
+synronously, ready for the next data cycle.
+
+# Build
+
+* Install icetools, arachne-pnr, yosys, etc.
+* Change the device name in the Makefile for the device you want to use.
+  **NOTE** one must change the `MAIN_CLK` speed in 'top.v' in addition to
+  this.
+* `make && make prog`
+
+# Test
+
+```
+make test
+gtkwave dump.vcd
+```
