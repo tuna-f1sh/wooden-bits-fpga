@@ -38,7 +38,7 @@ module](https://github.com/tuna-f1sh/ws2812-core). My fork allows direct
 access to the pseudo RGB register of each LED so that the data can be edged
 synchronously, ready for the next data cycle.
 
-# Build
+# Synthesize, Wire and Program
 
 * Install icetools, arachne-pnr, yosys, etc.
 * Change the device name in the Makefile for the device you want to use.
@@ -47,6 +47,12 @@ synchronously, ready for the next data cycle.
 * `make && make prog`
 
 # Test
+
+A test bench for the main project 'top_tb.v' runs two full days of the clock -
+one at standard speed and one with the button pressed at 2000x speed (set
+mode).
+It can take around 30 seconds to crunch and the dump is quite large (35 MB)
+for this reason. Change the `wait` statements to reduce this.
 
 ```
 make test
