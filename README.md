@@ -38,7 +38,7 @@ module](https://github.com/tuna-f1sh/ws2812-core). My fork allows direct
 access to the pseudo RGB register of each LED so that the data can be edged
 synchronously, ready for the next data cycle.
 
-# Synthesize, Wire and Program
+# Synthesis, Wire and Program
 
 * Install icetools, arachne-pnr, yosys, etc.
 * Change the device name in the Makefile for the device you want to use.

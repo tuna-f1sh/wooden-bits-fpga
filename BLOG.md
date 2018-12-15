@@ -47,7 +47,7 @@ modules. I [developed an
 alternative](https://github.com/tuna-f1sh/wooden-bits-fpga/blob/master/binary_clock.v)
 based on this idea, using bit logic to clear/increment bit addresses. The
 advantage is that it only uses 13 bits rather than 16 bits. Other than this,
-the modular system should synthesize down to the same thing, since the reset
+the modular system should generate down to the same thing, since the reset
 inputs driving each module are just _wire_ bit logic as in the massive `if,
 else`. I think having modules for each digit helps with readability.
 
