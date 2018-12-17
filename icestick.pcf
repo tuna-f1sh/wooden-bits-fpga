@@ -8,5 +8,6 @@ set_io --warn-no-port LED[4] 95
 set_io --warn-no-port BTN 79
 
 set_io --warn-no-port CLK 21
+set_io --warn-no-port CLK_1HZ 80
 
 set_io --warn-no-port WS2812_DATA 78

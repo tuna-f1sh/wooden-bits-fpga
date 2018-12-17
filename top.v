@@ -3,15 +3,16 @@
 
 module top(
   input CLK,
+  input CLK_1HZ,
   input BTN,
   output [4:0] LED, 
   output WS2812_DATA);
 
-  localparam NUM_LEDS = 16;
+  localparam NUM_LEDS = 15;
   parameter MAIN_CLK = 12000000;
 
   /* reset WS2812s on first clock */
-  reg reset = 1;
+  reg reset = 1'b1;
 
   /* 1 Hz clock generation (from 12 MHz) */
   reg clk_1 = 1'b0;
@@ -19,30 +20,33 @@ module top(
   reg clk_2 = 1'b0;
   reg [15:0] cntr_2 = 16'b0;
   parameter period_1 = MAIN_CLK / 2;
-  parameter period_2 = MAIN_CLK / 2000000;
+  parameter period_2 = MAIN_CLK / 2000;
+
+  /* binary clock source is either clk_1 (1 Hz) or clk_2 if button is pressed */
+  wire clock_clk = ((CLK_1HZ && BTN) || (clk_2 && ~BTN));
   
   /* seconds (4 and 3 bits but leave all) */
   wire [3:0] ds0;
-  wire rst_ds0 = (ds0[1] & ds0[3] | reset); // 10
-  counter s0(clk_1, rst_ds0, ds0);
+  wire rst_ds0 = ((ds0[1] & ds0[3]) || reset); // 10
+  counter s0(clock_clk, rst_ds0, ds0);
   wire [3:0] ds1;
-  wire rst_ds1 = (ds1[1] & ds1[2] | reset); // 6(0) minutes
+  wire rst_ds1 = ((ds1[1] & ds1[2]) || reset); // 6(0) minutes
   counter s1(rst_ds0, rst_ds1, ds1);
 
   /* minutes (4 and 3 bits but leave all) */
   wire [3:0] dm0;
-  wire rst_dm0 = (dm0[1] & dm0[3] | reset); // 10
+  wire rst_dm0 = ((dm0[1] & dm0[3]) || reset); // 10
   counter m0(rst_ds1, rst_dm0, dm0);
   wire [3:0] dm1;
-  wire rst_dm1 = (dm1[1] & dm1[2] | reset); // 6(0) minutes
+  wire rst_dm1 = ((dm1[1] & dm1[2]) || reset); // 6(0) minutes
   counter m1(rst_dm0, rst_dm1,  dm1);
 
   /* hours (4 and 2 bits but leave all) */
   wire [3:0] dh0;
-  wire rst_dh0 = ((dh0[1] & dh0[3]) | rst_dh1 | reset); // 10 or tens of hour reset
+  wire rst_dh0 = ((dh0[1] & dh0[3]) || rst_dh1 || reset); // 10 or tens of hour reset
   counter h0(rst_dm1, rst_dh0, dh0);
   wire [3:0] dh1;
-  wire rst_dh1 = (dh1[1] & dh0[2] | reset); // 2(0) & 4 hours
+  wire rst_dh1 = ((dh1[1] & dh0[2]) || reset); // 2(0) & 4 hours
   counter h1(rst_dh0, rst_dh1, dh1);
 
   /* LED drivers */
@@ -55,16 +59,9 @@ module top(
     cntr_1 <= cntr_1 + 1;
     cntr_2 <= cntr_2 + 1;
 
-    if (~BTN) begin
-      if (cntr_1 == period_2) begin
-        clk_1 <= ~clk_1;
-        cntr_1 <= 32'b0;
-      end
-    end else begin
-      if (cntr_1 == period_1) begin
-        clk_1 <= ~clk_1;
-        cntr_1 <= 32'b0;
-      end
+    if (cntr_1 == period_1) begin
+      clk_1 <= ~clk_1;
+      cntr_1 <= 32'b0;
     end
 
     if (cntr_2 == period_2) begin
@@ -83,11 +80,16 @@ module top(
   wire [23:0] display_rgb = {green, red, blue};
   reg [7:0] wheel = 0;
   reg rainbow = 0;
-  reg [3:0] led_num = 0;
   
   // wire of digits, arranged for display
   wire [NUM_LEDS - 1:0] led_matrix;
-  assign led_matrix = {dh1, dh0, dm1, dm0};
+
+  // map bits to matrix in snakes and ladder formation...
+  assign led_matrix = {
+    dh1[3], dh0[3], dm1[3], dm0[3],
+    dm0[2], dm1[2], dh0[2], dh1[2],
+    dh1[1], dh0[1], dm1[1], dm0[1],
+            dm0[0], dm1[0], dh0[0]};
 
   integer i;
 
@@ -95,24 +97,21 @@ module top(
     // clear WS2812 reset
     reset <= 0;
 
-    // set these evene when not using so they don't transparent latch
-    led_num <= led_num + 1;
+    // set these even when not using so they don't transparent latch
     rainbow <= 0;
+    wheel <= wheel + 1;
 
     // set first flip-flop clock based on button state
     if (~BTN) begin
-      red <= 8'h10; green <= 8'h00; blue <= 8'h00;
+      red <= 8'hFF; green <= 8'h00; blue <= 8'h00;
     // rainbow display if midday or midnight
     end else if (~|{dh1, dh0, dm1, dm0} || (dh1[0] && dh0[1] && ~|{dm1, dm0})) begin
       rainbow <= 1;
-      red <= 8'h10; green <= 8'h10; blue <= 8'h00;
+      /* colour_wheel; */
+      red <= 8'hFF; green <= 8'hFF; blue <= 8'h00;
     // or just show clock
     end else begin
-      red <= 8'h10; green <= 8'h10; blue <= 8'h10;
-    end
-
-    if (led_num == NUM_LEDS - 1) begin
-      wheel <= wheel + 1;
+      red <= 8'hFF; green <= 8'hFF; blue <= 8'hFF;
     end
 
     for (i=0; i<NUM_LEDS; i=i+1) begin

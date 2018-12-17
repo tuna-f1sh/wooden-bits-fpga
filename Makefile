@@ -43,12 +43,15 @@ endif
 all: $(PROJ).rpt $(PROJ).bin
 
 %.blif: %.v
+	@echo 'Synthesis...'
 	yosys -p 'synth_ice40 -top $(PROJ) -blif $(BUILD)/$@' $<
 
 %.asc: %.blif
+	@echo 'Placing...'
 	arachne-pnr -d $(ARA_DEVICE) -P $(FOOTPRINT) -o $(BUILD)/$@ -p $(PIN_DEF) $(BUILD)/$^
 
 %.bin: %.asc
+	@echo 'Packing...'
 	icepack $(BUILD)/$< $(BUILD)/$@
 
 %.rpt: %.asc
@@ -71,6 +74,9 @@ all: $(PROJ).rpt $(PROJ).bin
 
 prog: $(PROJ).bin
 	$(PROG_CMD) $(BUILD)/$<
+
+burn:
+	$(PROG_CMD) $(BUILD)/$(PROJ).bin
 
 sudo-prog: $(PROJ).bin
 	@echo 'Executing prog as root!!!'
