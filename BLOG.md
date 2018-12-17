@@ -56,16 +56,16 @@ alternative](https://github.com/tuna-f1sh/wooden-bits-fpga/blob/master/binary_cl
 based on this idea, using bit logic to clear/increment bit addresses. The
 advantage is that it only uses 13 bits rather than 16 bits. Other than this,
 the modular system should generate down to the same thing (something that
-looks like the Falstad simulation), since the reset inputs driving each module are just
-_wire_ bit logic as in the massive `if, else`. I think having modules for each
-digit helps with readability.
+looks like the Falstad simulation), since the reset inputs driving each module
+are just _wire_ bit logic as in the massive `if, else`. I think having modules
+for each digit helps with readability.
 
 * Code variants
 
 For development, the clock input to the first Flip-Flop is taken from a
 divided down master clock (12 MHz) to form a 1 Hz clock. For actual deployment
-on the bench, I added an additional clock input pin for driving from an external
-1 Hz clock generator such as can be found on RTCs.
+on the bench, I added an additional clock input pin for driving from an
+external 1 Hz clock generator such as can be found on RTCs.
 
 * gif of clock generator
 
@@ -84,13 +84,12 @@ An FPGA can make light work of this however and my real interest peaked with
 the idea that one can make a WS2812 _peripheral_ with no processor overhead.
 
 The binary clock face only needs to set LEDs on or off. I created [a
-fork](https://github.com/tuna-f1sh/ws2812-core) of
-Matt Venn's WS2812 module that can access the LED colour register directly so that the
-code then does a mask operation using the digit registers on each update of
-the digits (1 Hz in standard operation). The main real overhead driving the
-LEDs is the size of the colour register that is 24 * N bits, where N is the
-number of LEDs. This is because the FPGA must latch this data because it change
-change on different clock sources.
+fork](https://github.com/tuna-f1sh/ws2812-core) of Matt Venn's WS2812 module
+that can access the LED colour register directly so that the code then does a
+mask operation using the digit registers on each update of the digits (1 Hz in
+standard operation). The main real overhead driving the LEDs is the size of
+the colour register that is 24 * N bits, where N is the number of LEDs. The
+FPGA must latch this data, as it can change at different clock edges.
 
 ## Clock Features
 
@@ -98,36 +97,37 @@ change on different clock sources.
 
 The set button was easy to port: I added an input to the top module connected
 to a IO pin for button. If the button is pressed, the clock source to the
-first counter flip-flop changes to one that is running at 1000 Hz and
-the display colour changes red. Releasing the button returns the clock to the
-normal state. This allows a user to quickly advance the clock to the
-correct time.
+first counter flip-flop changes to one that is running at 1000 Hz (using a
+counter based divider) and the display colour changes red. Releasing the
+button returns the clock to the normal state. This allows a user to quickly
+advance the clock to the correct time.
 
 Whilst it was an easy port, the user interraction is much less refined then on
-the software version. My embedded design features a delay before advancing at
-accelerated time so one can button press through minutes when near the correct time, or
-hold the button to advance quickly. It will also wait in set mode for a few
-seconds on release before setting the new time. Additionally, the set button
-can be used to set the main display colour.
+the software version. My software design features a delay before advancing at
+accelerated time so one can button press through minutes when near the correct
+time, or hold the button to advance quickly. It will also wait in set mode for
+a few seconds on release before setting the new time. Additionally, the set
+button can be used to set the main display colour.
 
 These advanced interaction would all be possible on the FPGA but the design
-would become somewhat messy and it would need to be carefully thoughtout as to
-avoid FPGA bad practices (there are some big pitfalls I have found!). My take
-away was that these kind of user interaction features are better done in
+would become somewhat messy and it would need to be carefully implemented as
+to avoid FPGA bad practices (there are some big pitfalls I have found!). My
+take away was that these kind of user interaction features are better done in
 software - there is minimal overhead compared to driving the LEDs and it is
 very quick to implement.
 
 ### Rainbow Colour Cycle
 
-My original clock also fills the display with a rainbow colour
-routine at midday and midnight. Implementing this on the IceStick became quite
-challenging as I quickly overran the 1280 LUTS (basically combinational logic). I think this was due to
-setting a RGB colour for each LED in the colour register, where as before it
-was just an option between two colours based on whether a bit was high or low.
-Without the rainbow effect, the sythesis was a simple logic mask but with the
-addition of full 24 bit colour at run time, it would require much more
-complicated logic. In addition, the routine works using a pseudo colour wheel
-that also adds complexity to the logic synthesis.
+My original clock also fills the display with a rainbow colour routine at
+midday and midnight. Implementing this on the IceStick became quite
+challenging as I quickly overran the 1280 LUTS (basically combinational
+logic). I think this was due to setting a RGB colour for each LED in the
+colour register, where as before it was just an option between two colours
+based on whether a bit was high or low.  Without the rainbow effect, the
+sythesis was a simple logic mask but with the addition of full 24 bit colour
+at run time, it would require much more complicated logic. In addition, the
+routine works using a pseudo colour wheel that also adds complexity to the
+logic synthesis, due to three `<` switches.
 
 Encounting these sorts of problems are useful when learning a new topic.
 Whilst the base project itself is quite simple, adding in these sorts of
@@ -135,3 +135,24 @@ features brings up challenges that require further reading. I _just_ managed
 to squeeze the rainbow effect, after finding areas of optimisation in logic
 statements and [transparent
 latches](https://www.doulos.com/knowhow/verilog_designers_guide/synthesizing_latches/).
+
+# Discussion
+
+The project grew well beyond the scope of simply getting a binary clock
+working on the IceStick - I achieved that in less than an hour. What took time
+was refining how the digit module worked and really understanding how to
+mirror the simulation; digging into the WS2812 module to add masking and
+direct colour register set; developing a test bench and methods for capturing
+specific parts of a design and finally, the user interactions and bonus
+features.
+
+My take home is that an FPGA is ideal for creating a low-level driver but what
+you do with that driver is generally better done in software. A binary counter
+is just as easy and low resource to impliment in C and the advantage then is
+that the button control and advanced features that make the clock unique is
+much quicker, safer and flexiable to incorperate. That code can then directly
+interface with something like the WS2812 via a FPGA peripherial in this
+example.
+
+I'm looking forward to trying other high data rate experiments with FPGAs such
+LED matrix and HDMI driving, watch this space...
