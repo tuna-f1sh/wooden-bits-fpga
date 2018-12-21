@@ -7,10 +7,6 @@ module counter(
 
   reg [BITS-1:0] digit = 0;
 
-  /* always @ (posedge rst) begin */
-  /*   nyble <= 0; */
-  /* end */
-
   always @ (posedge clk or posedge rst) begin
     if (rst)
       digit <= 0;
