@@ -27,11 +27,12 @@ module test;
   end
 
   initial begin
-    wait(TOP.dh1 == 2 & TOP.dh0 == 3)
-    wait(TOP.dh1 == 0 & TOP.dh0 == 0)
-    $display("testing set button...");
-    btn = 1'b0; // test set button advance clock
-    wait(TOP.dh1 == 0 & TOP.dh0 == 3)
+    /* wait(TOP.dh1 == 2 & TOP.dh0 == 3) */
+    /* wait(TOP.dh1 == 0 & TOP.dh0 == 0) */
+    /* $display("testing set button..."); */
+    /* btn = 1'b0; // test set button advance clock */
+    /* wait(TOP.dh1 == 0 & TOP.dh0 == 3) */
+    #10000
     $finish;
   end
 
