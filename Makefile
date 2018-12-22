@@ -40,7 +40,10 @@ ifeq ($(HARDWARE),tinyfpga-bx)
   PROG_CMD = tinyprog -p
 endif
 
-all: $(PROJ).rpt $(PROJ).bin
+all: $(BUILD) $(PROJ).rpt $(PROJ).bin
+
+$(BUILD):
+	mkdir $(BUILD)
 
 %.blif: %.v
 	@echo 'Synthesis...'
@@ -82,9 +85,9 @@ sudo-prog: $(PROJ).bin
 	@echo 'Executing prog as root!!!'
 	sudo $(PROG_CMD) $<
 
-test: $(PROJ)_tb.vcd
+test: $(BUILD) $(PROJ)_tb.vcd
 
 clean:
-	rm -f $(BUILD)/*
+	rm -f $(BUILD)
 
 .PHONY: all prog clean test
