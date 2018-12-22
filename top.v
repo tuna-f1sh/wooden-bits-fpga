@@ -8,7 +8,7 @@ module top(
   output [4:0] LED, 
   output WS2812_DATA);
 
-  localparam NUM_LEDS = 15;
+  localparam NUM_LEDS = 16;
   parameter MAIN_CLK = 12000000;
 
   /* reset WS2812s on first clock */
@@ -89,7 +89,7 @@ module top(
     dh1[3], dh0[3], dm1[3], dm0[3],
     dm0[2], dm1[2], dh0[2], dh1[2],
     dh1[1], dh0[1], dm1[1], dm0[1],
-            dm0[0], dm1[0], dh0[0]};
+    dm1[0], dm0[0], dm1[0], dh0[0]};
 
   integer i;
 
